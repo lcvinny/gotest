@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -17,9 +18,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
 	if err := cmd.Start(); err != nil {
 		panic(err)
 	}
+
+	go func() {
+		io.Copy(os.Stderr, stderr)
+	}()
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
